@@ -9,9 +9,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Definitions is List Definition
+type Definitions []string
+
 // Dict is Dictionary
 type Dict struct {
-	m map[string]string
+	m map[string]Definitions
 }
 
 // FromEJDict makes Dict from EJDict
@@ -22,7 +25,7 @@ func FromEJDict() (*Dict, error) {
 		return nil, errors.Wrap(err, "read EJDict")
 	}
 
-	d := make(map[string]string, 10000)
+	d := make(map[string]Definitions, 10000)
 
 	for _, file := range files {
 		if file.IsDir() {
@@ -37,7 +40,9 @@ func FromEJDict() (*Dict, error) {
 		input := bufio.NewScanner(f)
 		for input.Scan() {
 			item := strings.Split(input.Text(), "\t")
-			d[item[0]] = item[1]
+			defs := d[item[0]]
+			defs = append(defs, item[1])
+			d[item[0]] = defs
 		}
 
 	}
@@ -49,7 +54,7 @@ func FromEJDict() (*Dict, error) {
 }
 
 // Get returns definition
-func (d *Dict) Get(word string) string {
+func (d *Dict) Get(word string) Definitions {
 	return d.m[word]
 }
 

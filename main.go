@@ -22,6 +22,7 @@ type config struct {
 	file       *regexp.Regexp
 	minWordLen int
 	sortMode   sortMode
+	deckMode   deckMode
 }
 
 func defaultConfig() config {
@@ -31,6 +32,8 @@ func defaultConfig() config {
 		minWordLen: 3,
 		sortMode:   sortModeIndex,
 		// sortMode: sortModeFrequency,
+		deckMode: deckModeHTML,
+		// deckMode: deckModeText,
 	}
 }
 
@@ -45,6 +48,13 @@ type sortMode string
 const (
 	sortModeIndex     = sortMode("sortModeIndex")
 	sortModeFrequency = sortMode("sortModeFrequency")
+)
+
+type deckMode string
+
+const (
+	deckModeText = deckMode("deckModeText")
+	deckModeHTML = deckMode("deckModeHTML")
 )
 
 func main() {
@@ -68,8 +78,42 @@ func main() {
 		sortByIndex(&engWords)
 	}
 
-	for _, v := range engWords {
-		fmt.Printf("%s\t%s\n", v.word, dict.Get((v.word)))
+	if cfg.deckMode == deckModeHTML {
+		makeHTMLDeck(engWords, dict)
+	} else if cfg.deckMode == deckModeText {
+		makeTextDeck(engWords, dict)
+	}
+}
+
+func makeHTMLDeck(engWords []entry, dict *dict.Dict) {
+	for _, entry := range engWords {
+		definitions := dict.Get(entry.word)
+		if len(definitions) == 0 {
+			continue
+		}
+		fmt.Printf("%s\t%s", entry.word, definitions[0])
+		for _, d := range definitions[1:] {
+			fmt.Printf("<br><br>%s", d)
+		}
+		fmt.Printf("\n")
+	}
+}
+
+func makeTextDeck(engWords []entry, dict *dict.Dict) {
+	for _, entry := range engWords {
+		definitions := dict.Get(entry.word)
+		if len(definitions) == 0 {
+			continue
+		}
+		if len(definitions) <= 1 {
+			fmt.Printf("%s\t%s\n", entry.word, definitions[0])
+		} else {
+			fmt.Printf("%s\t", entry.word)
+			for i, d := range definitions {
+				fmt.Printf(" %d. %s", i+1, d)
+			}
+			fmt.Printf("\n")
+		}
 	}
 }
 
